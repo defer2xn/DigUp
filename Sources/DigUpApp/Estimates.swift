@@ -136,15 +136,15 @@ nonisolated final class LineBuffer: @unchecked Sendable {
 
 /// "≈ 8 s", "≈ 2 min", or "< 1 s" for a few short files.
 nonisolated func approximately(_ seconds: Double) -> String {
-    seconds < 0.5 ? "< 1 s" : "≈ \(roughDuration(seconds))"
+    seconds < 0.5 ? String(localized: "< 1 s") : "≈ \(roughDuration(seconds))"
 }
 
 /// "8 s", "2 min", "1.5 h": the precision an estimate deserves.
 nonisolated func roughDuration(_ seconds: Double) -> String {
     switch seconds {
-    case ..<90: "\(Int(seconds.rounded())) s"
-    case ..<5400: "\(Int((seconds / 60).rounded())) min"
-    default: String(format: "%.1f h", seconds / 3600)
+    case ..<90: String(localized: "\(Int(seconds.rounded())) s")
+    case ..<5400: String(localized: "\(Int((seconds / 60).rounded())) min")
+    default: String(localized: "\(String(format: "%.1f", seconds / 3600)) h")
     }
 }
 

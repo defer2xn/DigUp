@@ -35,7 +35,7 @@ final class OnboardingController: NSObject, NSWindowDelegate {
         window.titlebarAppearsTransparent = true
         window.titleVisibility = .hidden
         window.isMovableByWindowBackground = true
-        window.title = "Welcome to DigUp"
+        window.title = String(localized: "Welcome to DigUp")
         window.isReleasedWhenClosed = false
         window.delegate = self
         state.close = { [weak self] in self?.close() }
@@ -190,7 +190,7 @@ final class OnboardingState {
     }
 
     func skipFolders(from window: NSWindow?) {
-        app.pickFolders(for: window, prompt: "Skip") { [weak self] picked in
+        app.pickFolders(for: window, prompt: String(localized: "Skip")) { [weak self] picked in
             guard !picked.isEmpty else { return }
             self?.folders.skip(picked)
         }
@@ -273,26 +273,26 @@ struct OnboardingView: View {
 
     private var continueTitle: String {
         switch state.step {
-        case .welcome: "Get Started"
-        case .folders: "Continue"
-        case .code: "Continue"
-        case .shortcut: "Continue"
-        case .ready: "Done"
+        case .welcome: String(localized: "Get Started")
+        case .folders: String(localized: "Continue")
+        case .code: String(localized: "Continue")
+        case .shortcut: String(localized: "Continue")
+        case .ready: String(localized: "Done")
         }
     }
 
     private var codeSummary: String {
-        guard !state.codeFolders.roots.isEmpty else { return "Check the folders with your code" }
-        guard state.codeFolders.estimatesDone else { return "Looking at your code…" }
+        guard !state.codeFolders.roots.isEmpty else { return String(localized: "Check the folders with your code") }
+        guard state.codeFolders.estimatesDone else { return String(localized: "Looking at your code…") }
         let seconds = state.codeFolders.totalSeconds
-        return (seconds < 1 ? "Under a second" : "About \(roughDuration(seconds))")
+        return (seconds < 1 ? String(localized: "Under a second") : String(localized: "About \(roughDuration(seconds))"))
             + ", \(roughBytes(state.codeFolders.totalBytes))"
     }
 
     private var foldersSummary: String {
-        guard !state.folders.roots.isEmpty else { return "Choose at least one folder" }
-        guard state.folders.estimatesDone else { return "Looking at your folders…" }
-        return "First pass: about \(roughDuration(state.folders.totalSeconds))"
+        guard !state.folders.roots.isEmpty else { return String(localized: "Choose at least one folder") }
+        guard state.folders.estimatesDone else { return String(localized: "Looking at your folders…") }
+        return String(localized: "First pass: about \(roughDuration(state.folders.totalSeconds))")
     }
 }
 
@@ -309,7 +309,7 @@ private struct StepDots: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Step \(current + 1) of \(count)")
+        .accessibilityLabel(String(localized: "Step \(current + 1) of \(count)"))
     }
 }
 
@@ -362,12 +362,12 @@ private struct WelcomeStep: View {
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
             VStack(alignment: .leading, spacing: 16) {
-                Feature(symbol: "camera.viewfinder", title: "Screenshots and photos",
-                        example: "“that payment error”, “the zebra”, “whiteboard from Tuesday”")
-                Feature(symbol: "doc.text", title: "PDFs and documents",
-                        example: "“the clause about pets in the lease”, “flight receipt”")
-                Feature(symbol: "waveform", title: "Moments inside audio and video",
-                        example: "“where they talk about sleep”, “the part with the drums”")
+                Feature(symbol: "camera.viewfinder", title: String(localized: "Screenshots and photos"),
+                        example: String(localized: "“that payment error”, “the zebra”, “whiteboard from Tuesday”"))
+                Feature(symbol: "doc.text", title: String(localized: "PDFs and documents"),
+                        example: String(localized: "“the clause about pets in the lease”, “flight receipt”"))
+                Feature(symbol: "waveform", title: String(localized: "Moments inside audio and video"),
+                        example: String(localized: "“where they talk about sleep”, “the part with the drums”"))
             }
             .padding(.top, 30)
             HStack(alignment: .top, spacing: 12) {
@@ -375,8 +375,10 @@ private struct WelcomeStep: View {
                     .font(.system(size: 18))
                     .foregroundStyle(.secondary)
                     .frame(width: 30)
-                Text("Everything is indexed and searched on this Mac. DigUp downloads its AI model (865 MB) once; "
-                     + "after that it works offline, and nothing you index ever leaves your Mac.")
+                Text("""
+                    Everything is indexed and searched on this Mac. DigUp downloads its AI model (865 MB) once; \
+                    after that it works offline, and nothing you index ever leaves your Mac.
+                    """)
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -431,12 +433,14 @@ private struct FoldersStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            StepTitle(title: "What should DigUp search?",
-                      subtitle: "Pick folders, or open one to pick some of its subfolders. You can change this "
-                          + "anytime in Settings.")
+            StepTitle(title: String(localized: "What should DigUp search?"),
+                      subtitle: String(localized: """
+                          Pick folders, or open one to pick some of its subfolders. You can change this \
+                          anytime in Settings.
+                          """))
             ScrollView {
                 VStack(spacing: 6) {
-                    FolderList(choices: state.folders, addTitle: "Add Folder…") {
+                    FolderList(choices: state.folders, addTitle: String(localized: "Add Folder…")) {
                         state.addFolders(from: NSApp.keyWindow)
                     }
                     SkipChoices(state: state)
@@ -445,8 +449,10 @@ private struct FoldersStep: View {
             .scrollBounceBehavior(.basedOnSize)
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: "info.circle").foregroundStyle(.secondary)
-                Text("macOS will ask before DigUp can read folders like Desktop, Documents and Downloads. "
-                     + "DigUp only reads files: it never changes, moves or uploads them.")
+                Text("""
+                    macOS will ask before DigUp can read folders like Desktop, Documents and Downloads. \
+                    DigUp only reads files: it never changes, moves or uploads them.
+                    """)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .font(.system(size: 11))
@@ -522,17 +528,20 @@ private struct CodeStep: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            StepTitle(title: "Search your code too?",
-                      subtitle: "DigUp can find code by what it does: type code: in the search panel, as in "
-                          + "“code: retry with backoff”. It gets an index of its own and never shows up in other "
-                          + "searches. You can turn it on later in Settings → Code.")
-            SwitchRow(title: "Search my code", detail: "Off unless you turn it on.", isOn: $state.searchCode)
+            StepTitle(title: String(localized: "Search your code too?"),
+                      subtitle: String(localized: """
+                          DigUp can find code by what it does: type code: in the search panel, as in \
+                          “code: retry with backoff”. It gets an index of its own and never shows up in other \
+                          searches. You can turn it on later in Settings → Code.
+                          """))
+            SwitchRow(title: String(localized: "Search my code"), detail: String(localized: "Off unless you turn it on."),
+                      isOn: $state.searchCode)
                 .padding(14)
                 .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.primary.opacity(0.04)))
             if state.searchCode {
                 ScrollView {
                     VStack(spacing: 6) {
-                        FolderList(choices: state.codeFolders, addTitle: "Add Folder…") {
+                        FolderList(choices: state.codeFolders, addTitle: String(localized: "Add Folder…")) {
                             state.addCodeFolders(from: NSApp.keyWindow)
                         }
                         CodeFolderNote().padding(.top, 4)
@@ -563,8 +572,8 @@ private struct ShortcutStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            StepTitle(title: "Open DigUp from anywhere",
-                      subtitle: "Press the shortcut in any app, describe what you're looking for, and press Return.")
+            StepTitle(title: String(localized: "Open DigUp from anywhere"),
+                      subtitle: String(localized: "Press the shortcut in any app, describe what you're looking for, and press Return."))
             ShortcutRecorder(combo: state.model.hotkey, apply: { state.app.setHotkey($0) },
                              listening: { state.app.hotkeyRecording($0) }, capSize: 20)
                 .padding(.top, 34)
@@ -585,11 +594,11 @@ private struct ShortcutStep: View {
                     .font(.system(size: 10, weight: .semibold))
                     .tracking(0.6)
                     .foregroundStyle(.secondary)
-                KeyTip(caps: ["↩"], text: "Open the file")
-                KeyTip(caps: ["⌘", "↩"], text: "Show it in Finder")
-                KeyTip(caps: ["Space"], text: "Quick Look, after arrowing to a result")
-                KeyTip(caps: ["⌘", "C"], text: "Copy the file, to paste anywhere")
-                KeyTip(caps: ["esc"], text: "Close")
+                KeyTip(caps: ["↩"], text: String(localized: "Open the file"))
+                KeyTip(caps: ["⌘", "↩"], text: String(localized: "Show it in Finder"))
+                KeyTip(caps: [String(localized: "Space")], text: String(localized: "Quick Look, after arrowing to a result"))
+                KeyTip(caps: ["⌘", "C"], text: String(localized: "Copy the file, to paste anywhere"))
+                KeyTip(caps: ["esc"], text: String(localized: "Close"))
             }
             .padding(18)
             .frame(maxWidth: 340, alignment: .leading)
@@ -632,7 +641,8 @@ private struct ReadyStep: View {
                 .frame(maxWidth: 470)
                 .padding(.top, 8)
             VStack(alignment: .leading, spacing: 16) {
-                SwitchRow(title: "Open DigUp when you log in", detail: "So the shortcut always works.",
+                SwitchRow(title: String(localized: "Open DigUp when you log in"),
+                          detail: String(localized: "So the shortcut always works."),
                           isOn: $state.launchAtLogin)
                 Divider()
                 SwitchRow(title: AppSettings.batteryTitle, detail: AppSettings.batteryDetail,
@@ -655,15 +665,22 @@ private struct ReadyStep: View {
 
     private var progressNote: String {
         let seconds = state.folders.totalSeconds, later = state.folders.totalLaterSeconds
-        let time = seconds > 0 ? " (about \(roughDuration(seconds)) on this Mac)" : ""
-        let rest = later >= 30 ? " Long PDFs and documents get their first pages in that time, and the rest "
-            + "afterwards (about \(roughDuration(later)) more)." : ""
+        let time = seconds > 0 ? String(localized: " (about \(roughDuration(seconds)) on this Mac)") : ""
+        let rest = later >= 30 ? String(localized: """
+             Long PDFs and documents get their first pages in that time, and the rest \
+            afterwards (about \(roughDuration(later)) more).
+            """) : ""
         if state.download.isReady {
-            return "DigUp is reading your folders\(time), newest files first. You can search right away; "
-                + "results fill in as it goes." + rest
+            return String(localized: """
+                DigUp is reading your folders\(time), newest files first. You can search right away; \
+                results fill in as it goes.
+                """) + rest
         }
-        return "DigUp starts reading your folders\(time) once the model has downloaded "
-            + "(\(state.download.progressText)). Until then, search finds files by name." + rest
+        let progress = state.download.progressText
+        return String(localized: """
+            DigUp starts reading your folders\(time) once the model has downloaded \
+            (\(progress)). Until then, search finds files by name.
+            """) + rest
     }
 }
 

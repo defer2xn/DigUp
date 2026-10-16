@@ -8,10 +8,10 @@ enum SettingsTab: String, CaseIterable {
 
     var title: String {
         switch self {
-        case .general: "General"
-        case .folders: "Folders"
-        case .code: "Code"
-        case .storage: "Storage"
+        case .general: String(localized: "General")
+        case .folders: String(localized: "Folders")
+        case .code: String(localized: "Code")
+        case .storage: String(localized: "Storage")
         }
     }
 
@@ -224,7 +224,7 @@ private struct GeneralSettings: View {
                 })) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Open DigUp when you log in")
-                        Text(state.loginProblem ?? "So the shortcut always works.")
+                        Text(state.loginProblem ?? String(localized: "So the shortcut always works."))
                             .font(.system(size: 11))
                             .foregroundStyle(state.loginProblem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
                     }
@@ -237,8 +237,10 @@ private struct GeneralSettings: View {
                 })) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Check for updates automatically")
-                        Text("Once a day DigUp asks GitHub for its newest version; nothing about your files is sent. "
-                             + "Updates install with one click.")
+                        Text("""
+                            Once a day DigUp asks GitHub for its newest version; nothing about your files is sent. \
+                            Updates install with one click.
+                            """)
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -247,7 +249,7 @@ private struct GeneralSettings: View {
                 LabeledContent {
                     Button("Check Now") { state.app.updates.checkNow() }
                 } label: {
-                    Text(state.model.updateAvailable.map { "DigUp \($0) is available" }
+                    Text(state.model.updateAvailable.map { String(localized: "DigUp \($0) is available") }
                          ?? "DigUp \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
                 }
             }
@@ -314,7 +316,7 @@ private struct FolderSettings: View {
             } footer: {
                 HStack {
                     Button {
-                        state.app.pickFolders(for: NSApp.keyWindow, prompt: "Skip") { folders in
+                        state.app.pickFolders(for: NSApp.keyWindow, prompt: String(localized: "Skip")) { folders in
                             guard !folders.isEmpty else { return }
                             state.app.setExcluded(state.model.settings.excludedFolders
                                 + folders.filter { !state.model.settings.excludedFolders.contains($0) })
@@ -330,9 +332,11 @@ private struct FolderSettings: View {
             } header: {
                 Text("Skip these file types")
             } footer: {
-                Text("DigUp only reads pictures, PDFs, documents (txt, md, rtf, docx, odt, html), audio and video here; "
-                     + "code is read only in the code folders (the Code tab). Keys, certificates and password files are "
-                     + "never read, nor are hidden folders like ~/.ssh.")
+                Text("""
+                    DigUp only reads pictures, PDFs, documents (txt, md, rtf, docx, odt, html), audio and video here; \
+                    code is read only in the code folders (the Code tab). Keys, certificates and password files are \
+                    never read, nor are hidden folders like ~/.ssh.
+                    """)
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -352,8 +356,10 @@ private struct FolderSettings: View {
                 })) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Index only at set hours")
-                        Text("Files are read only between these times, and what changed meanwhile is picked up when "
-                             + "they begin. Search works all day.")
+                        Text("""
+                            Files are read only between these times, and what changed meanwhile is picked up when \
+                            they begin. Search works all day.
+                            """)
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -383,13 +389,12 @@ private struct FolderSettings: View {
                 Task { await state.refresh() }
             }
         } message: {
-            Text("Its \(removing?.files.formatted() ?? "") files leave the index. Adding it back later indexes them "
-                 + "again.")
+            Text("Its \(removing?.files.formatted() ?? "") files leave the index. Adding it back later indexes them again.")
         }
     }
 
     private var removalTitle: String {
-        "Stop searching “\(removing.map { ($0.path as NSString).lastPathComponent } ?? "")”?"
+        String(localized: "Stop searching “\(removing.map { ($0.path as NSString).lastPathComponent } ?? "")”?")
     }
 
     /// One end of the set hours, as a time of day for a date picker.
@@ -443,7 +448,7 @@ private struct IndexProgress: View {
             }
             Spacer()
             if model.hasFolders {
-                Button(model.status.paused ? "Resume" : "Pause", action: togglePause)
+                Button(model.status.paused ? String(localized: "Resume") : String(localized: "Pause"), action: togglePause)
             }
         }
     }
@@ -451,12 +456,14 @@ private struct IndexProgress: View {
     /// "357 of 365 files searchable · 8 waiting · 2 long files to finish"
     private var detail: String {
         let status = model.status
-        var text = "\(status.searchable.formatted()) of \(status.files.formatted()) files searchable"
-        if status.pending > 0 { text += " · \(status.pending.formatted()) waiting" }
+        var text = String(localized: "\(status.searchable.formatted()) of \(status.files.formatted()) files searchable")
+        if status.pending > 0 { text += String(localized: " · \(status.pending.formatted()) waiting") }
         if status.unfinished > 0 {
-            text += " · \(status.unfinished.formatted()) long \(status.unfinished == 1 ? "file" : "files") to finish"
+            text += status.unfinished == 1
+                ? String(localized: " · \(status.unfinished.formatted()) long file to finish")
+                : String(localized: " · \(status.unfinished.formatted()) long files to finish")
         }
-        if model.download.isActive { text += " · model \(model.download.progressText)" }
+        if model.download.isActive { text += String(localized: " · model \(model.download.progressText)") }
         return text
     }
 }
@@ -475,7 +482,7 @@ private struct FolderStatusRow: View {
                 HStack(spacing: 6) {
                     Text((summary.path as NSString).lastPathComponent).font(.system(size: 13, weight: .semibold))
                     if summary.missing || summary.unreadable {
-                        Text(summary.missing ? "Not connected" : "No access")
+                        Text(summary.missing ? String(localized: "Not connected") : String(localized: "No access"))
                             .font(.system(size: 10, weight: .semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 1)
@@ -498,8 +505,8 @@ private struct FolderStatusRow: View {
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 2) {
-                Text(summary.missing || summary.unreadable ? "Kept for when it's back"
-                     : "\(summary.indexed.formatted()) of \(summary.files.formatted()) indexed")
+                Text(summary.missing || summary.unreadable ? String(localized: "Kept for when it's back")
+                     : String(localized: "\(summary.indexed.formatted()) of \(summary.files.formatted()) indexed"))
                     .font(.system(size: 12, weight: .medium).monospacedDigit())
                 if !states.isEmpty {
                     Text(states).font(.system(size: 11)).foregroundStyle(.secondary)
@@ -510,17 +517,17 @@ private struct FolderStatusRow: View {
             }
             .buttonStyle(.plain)
             .help("Stop searching this folder")
-            .accessibilityLabel("Remove \((summary.path as NSString).lastPathComponent)")
+            .accessibilityLabel(String(localized: "Remove \((summary.path as NSString).lastPathComponent)"))
         }
         .padding(.vertical, 2)
     }
 
     private var states: String {
-        [summary.pending > 0 ? "\(summary.pending.formatted()) waiting" : nil,
-         summary.unfinished > 0
-            ? "\(summary.unfinished.formatted()) long \(summary.unfinished == 1 ? "file" : "files") to finish" : nil,
-         summary.skipped > 0 ? "\(summary.skipped.formatted()) skipped" : nil,
-         summary.failed > 0 ? "\(summary.failed.formatted()) couldn't be read" : nil].compactMap { $0 }
+        [summary.pending > 0 ? String(localized: "\(summary.pending.formatted()) waiting") : nil,
+         summary.unfinished == 1 ? String(localized: "\(summary.unfinished.formatted()) long file to finish")
+            : summary.unfinished > 1 ? String(localized: "\(summary.unfinished.formatted()) long files to finish") : nil,
+         summary.skipped > 0 ? String(localized: "\(summary.skipped.formatted()) skipped") : nil,
+         summary.failed > 0 ? String(localized: "\(summary.failed.formatted()) couldn't be read") : nil].compactMap { $0 }
             .joined(separator: " · ")
     }
 }
@@ -536,7 +543,7 @@ private struct StorageSettings: View {
                 }
                 LabeledContent("Status") {
                     HStack(spacing: 8) {
-                        Text(state.model.download.isReady ? "Downloaded" : state.model.download.progressText)
+                        Text(state.model.download.isReady ? String(localized: "Downloaded") : state.model.download.progressText)
                         switch state.model.download.phase {
                         case .needed, .failed:
                             Button("Download") { state.model.download.start() }.controlSize(.small)
@@ -555,8 +562,10 @@ private struct StorageSettings: View {
             } footer: {
                 if !state.model.download.isReady {
                     HStack(alignment: .firstTextBaseline) {
-                        Text("If your network blocks Hugging Face, download the two files on another network and "
-                             + "click Use Files… to choose them. DigUp checks them before it uses them.")
+                        Text("""
+                            If your network blocks Hugging Face, download the two files on another network and \
+                            click Use Files… to choose them. DigUp checks them before it uses them.
+                            """)
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -580,15 +589,16 @@ private struct StorageSettings: View {
                 }
             }
             Section("Privacy") {
-                Text("DigUp reads the folders you choose and keeps what it learns in its index, on this Mac. "
-                     + "It goes online only to download its model, once, and to check for updates (General), "
-                     + "which sends nothing about your files.")
+                Text("""
+                    DigUp reads the folders you choose and keeps what it learns in its index, on this Mac. \
+                    It goes online only to download its model, once, and to check for updates (General), \
+                    which sends nothing about your files.
+                    """)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Section {
-                Text("DigUp \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") · "
-                     + "EmbeddingGemma 2 by Google (Apache 2.0), run by llama.cpp (MIT).")
+                Text("DigUp \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "") · EmbeddingGemma 2 by Google (Apache 2.0), run by llama.cpp (MIT).")
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
@@ -609,9 +619,11 @@ private struct CodeSettings: View {
             Section {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Search your code").font(.system(size: 13, weight: .semibold))
-                    Text("Find code by what it does, or by a name in it: type code: in the search panel, as in "
-                         + "“code: retry with backoff”. Code has an index of its own, and it never shows up in "
-                         + "other searches.")
+                    Text("""
+                        Find code by what it does, or by a name in it: type code: in the search panel, as in \
+                        “code: retry with backoff”. Code has an index of its own, and it never shows up in \
+                        other searches.
+                        """)
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -661,9 +673,11 @@ private struct CodeSettings: View {
                     .foregroundStyle(.secondary)
             }
             Section {
-                Text("The code index keeps your code's text on this Mac, as the main index keeps your documents'. "
-                     + "It skips what git ignores, vendored and generated code, data files, and anything that looks "
-                     + "like a key or a password.")
+                Text("""
+                    The code index keeps your code's text on this Mac, as the main index keeps your documents'. \
+                    It skips what git ignores, vendored and generated code, data files, and anything that looks \
+                    like a key or a password.
+                    """)
                     .font(.system(size: 11))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

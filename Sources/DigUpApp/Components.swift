@@ -87,7 +87,7 @@ struct MomentBar: View {
             }
         }
         .frame(height: 4)
-        .accessibilityLabel("At \(ResultRow.clock(start)) of \(ResultRow.clock(duration))")
+        .accessibilityLabel(String(localized: "At \(ResultRow.clock(start)) of \(ResultRow.clock(duration))"))
     }
 }
 
@@ -132,16 +132,16 @@ extension FileKind {
     /// "1 screenshot", "25 PDFs", "6 audio files"
     func counted(_ count: Int) -> String {
         let one = count == 1
-        let noun = switch self {
-        case .screenshot: one ? "screenshot" : "screenshots"
-        case .image: one ? "image" : "images"
-        case .pdf: one ? "PDF" : "PDFs"
-        case .doc: one ? "document" : "documents"
-        case .audio: one ? "audio file" : "audio files"
-        case .video: one ? "video" : "videos"
-        case .code: one ? "code file" : "code files"
+        let n = count.formatted()
+        return switch self {
+        case .screenshot: one ? String(localized: "\(n) screenshot") : String(localized: "\(n) screenshots")
+        case .image: one ? String(localized: "\(n) image") : String(localized: "\(n) images")
+        case .pdf: one ? String(localized: "\(n) PDF") : String(localized: "\(n) PDFs")
+        case .doc: one ? String(localized: "\(n) document") : String(localized: "\(n) documents")
+        case .audio: one ? String(localized: "\(n) audio file") : String(localized: "\(n) audio files")
+        case .video: one ? String(localized: "\(n) video") : String(localized: "\(n) videos")
+        case .code: one ? String(localized: "\(n) code file") : String(localized: "\(n) code files")
         }
-        return "\(count.formatted()) \(noun)"
     }
 }
 
@@ -213,8 +213,9 @@ struct ShortcutRecorder: View {
             }
             .buttonStyle(.plain)
             .background(KeyCatcher(active: recording, onKey: handle, onResign: { setRecording(false) }))
-            .accessibilityLabel(recording ? "Recording a new shortcut" : "Shortcut \(combo?.display ?? "none"), click to change")
-            Text(problem ?? (recording ? "Esc cancels" : "Click to change"))
+            .accessibilityLabel(recording ? String(localized: "Recording a new shortcut")
+                                : String(localized: "Shortcut \(combo?.display ?? String(localized: "none")), click to change"))
+            Text(problem ?? (recording ? String(localized: "Esc cancels") : String(localized: "Click to change")))
                 .font(.system(size: 11))
                 .foregroundStyle(problem == nil ? AnyShapeStyle(.tertiary) : AnyShapeStyle(Color.red))
                 .multilineTextAlignment(.center)
@@ -234,7 +235,7 @@ struct ShortcutRecorder: View {
                                                                                                .numericPad])
         if event.keyCode == 53, flags.isEmpty { return setRecording(false) }   // Esc
         guard let combo = KeyCombo(keyCode: event.keyCode, flags: flags) else {
-            problem = "Use ⌘, ⌥ or ⌃ with a key"
+            problem = String(localized: "Use ⌘, ⌥ or ⌃ with a key")
             return
         }
         if let why = apply(combo) {

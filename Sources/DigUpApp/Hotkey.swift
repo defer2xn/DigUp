@@ -105,13 +105,13 @@ nonisolated struct KeyCombo: Equatable, Sendable {
         }
         guard taken else { return nil }
         switch (Int(keyCode), Int(carbonModifiers)) {
-        case (kVK_Space, cmdKey): return "Spotlight uses \(display)"
-        case (kVK_Space, cmdKey | optionKey): return "Finder's search window uses \(display)"
-        case (kVK_Space, controlKey), (kVK_Space, controlKey | optionKey): return "Switching input sources uses \(display)"
-        case (kVK_Space, controlKey | cmdKey): return "The emoji picker uses \(display)"
+        case (kVK_Space, cmdKey): return String(localized: "Spotlight uses \(display)")
+        case (kVK_Space, cmdKey | optionKey): return String(localized: "Finder's search window uses \(display)")
+        case (kVK_Space, controlKey), (kVK_Space, controlKey | optionKey): return String(localized: "Switching input sources uses \(display)")
+        case (kVK_Space, controlKey | cmdKey): return String(localized: "The emoji picker uses \(display)")
         case (kVK_ANSI_3, cmdKey | shiftKey), (kVK_ANSI_4, cmdKey | shiftKey), (kVK_ANSI_5, cmdKey | shiftKey):
-            return "Screenshots use \(display)"
-        default: return "macOS uses \(display) for one of its shortcuts"
+            return String(localized: "Screenshots use \(display)")
+        default: return String(localized: "macOS uses \(display) for one of its shortcuts")
         }
     }
 }

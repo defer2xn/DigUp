@@ -69,7 +69,7 @@ struct ResultRow: Identifiable, Equatable {
     var place: String? {
         guard let loc else { return nil }
         switch segment {
-        case .page, .pageImage: return "p. \(Int(loc))"
+        case .page, .pageImage: return String(localized: "p. \(Int(loc))")
         case .frame: return Self.clock(loc)
         case .audio: return kind == .video ? "♪ \(Self.clock(loc))" : Self.clock(loc)
         case .lines: return Int(loc) == Int(locEnd ?? loc) ? "L\(Int(loc))" : "L\(Int(loc))–\(Int(locEnd ?? loc))"
@@ -83,8 +83,8 @@ struct ResultRow: Identifiable, Equatable {
         guard let loc else { return nil }
         let (first, last) = (Int(loc), Int(locEnd ?? loc))
         switch segment {
-        case .lines: return first == last ? "line \(first)" : "lines \(first)–\(last)"
-        case .cells: return first == last ? "cell \(first)" : "cells \(first)–\(last)"
+        case .lines: return first == last ? String(localized: "line \(first)") : String(localized: "lines \(first)–\(last)")
+        case .cells: return first == last ? String(localized: "cell \(first)") : String(localized: "cells \(first)–\(last)")
         default: return nil
         }
     }
@@ -96,19 +96,24 @@ struct ResultRow: Identifiable, Equatable {
 
     /// Why it's here, in a few words: "Matches the picture", "Matches the frame at 0:06".
     var reason: String {
-        guard matchedMeaning else { return matchedWords ? "Has your words" : "Matches its name" }
+        guard matchedMeaning else {
+            return matchedWords ? String(localized: "Has your words") : String(localized: "Matches its name")
+        }
         let place = loc.map(Self.clock) ?? ""
-        let page = loc.map { "page \(Int($0))" } ?? "a page"
+        let page = loc.map { String(localized: "page \(Int($0))") } ?? String(localized: "a page")
         switch segment {
-        case .image: return kind == .screenshot ? "Matches what's on screen" : "Matches the picture"
-        case .ocr: return "Matches the text in it"
-        case .frame: return "Matches the frame at \(place)"
-        case .audio: return kind == .video ? "Matches the sound at \(place)" : "Matches what's heard at \(place)"
-        case .page: return "Matches the text on \(page)"
-        case .pageImage: return "Matches \(page)"
-        case .chunk: return "Matches its text"
-        case .name: return "Matches its name"
-        case .lines, .cells: return "Matches \(span ?? "the code")"
+        case .image:
+            return kind == .screenshot ? String(localized: "Matches what's on screen") : String(localized: "Matches the picture")
+        case .ocr: return String(localized: "Matches the text in it")
+        case .frame: return String(localized: "Matches the frame at \(place)")
+        case .audio:
+            return kind == .video ? String(localized: "Matches the sound at \(place)")
+                : String(localized: "Matches what's heard at \(place)")
+        case .page: return String(localized: "Matches the text on \(page)")
+        case .pageImage: return String(localized: "Matches \(page)")
+        case .chunk: return String(localized: "Matches its text")
+        case .name: return String(localized: "Matches its name")
+        case .lines, .cells: return String(localized: "Matches \(span ?? String(localized: "the code"))")
         }
     }
 
@@ -118,9 +123,9 @@ struct ResultRow: Identifiable, Equatable {
         if kind == .code {
             var parts = [CodeExtractor.language(of: url.path)]
             if let cells = info["cells"].flatMap(Int.init) {
-                parts.append(cells == 1 ? "1 cell" : "\(cells) cells")
+                parts.append(cells == 1 ? String(localized: "1 cell") : String(localized: "\(cells) cells"))
             } else if let lines = info["lines"].flatMap(Int.init) {
-                parts.append(lines == 1 ? "1 line" : "\(lines.formatted()) lines")
+                parts.append(lines == 1 ? String(localized: "1 line") : String(localized: "\(lines.formatted()) lines"))
             }
             parts.append(modified.formatted(date: .abbreviated, time: .omitted))
             if size > 0 { parts.append(bytes(size)) }
@@ -131,9 +136,10 @@ struct ResultRow: Identifiable, Equatable {
         // A long file still being read (`Indexer.finishLongFiles`): what isn't read yet can't match.
         let readTo = info["read_to"].flatMap(Int.init)
         if let pages = info["pages"].flatMap(Int.init) {
-            parts.append((pages == 1 ? "1 page" : "\(pages) pages") + (readTo.map { ", \($0) read so far" } ?? ""))
+            parts.append((pages == 1 ? String(localized: "1 page") : String(localized: "\(pages) pages"))
+                         + (readTo.map { String(localized: ", \($0) read so far") } ?? ""))
         } else if readTo != nil {
-            parts.append("partly read so far")
+            parts.append(String(localized: "partly read so far"))
         }
         if let duration { parts.append(Self.clock(duration)) }
         if size > 0 { parts.append(bytes(size)) }
@@ -169,12 +175,12 @@ enum ResultGroupKind: CaseIterable {
 
     var title: String {
         switch self {
-        case .screenshots: "Screenshots"
-        case .images: "Images"
-        case .documents: "Documents"
-        case .video: "Video"
-        case .audio: "Audio"
-        case .code: "Code"
+        case .screenshots: String(localized: "Screenshots")
+        case .images: String(localized: "Images")
+        case .documents: String(localized: "Documents")
+        case .video: String(localized: "Video")
+        case .audio: String(localized: "Audio")
+        case .code: String(localized: "Code")
         }
     }
 
@@ -246,13 +252,13 @@ struct ResultSet: Equatable {
 extension FileKind {
     var title: String {
         switch self {
-        case .screenshot: "Screenshot"
-        case .image: "Image"
+        case .screenshot: String(localized: "Screenshot")
+        case .image: String(localized: "Image")
         case .pdf: "PDF"
-        case .doc: "Document"
-        case .audio: "Audio"
-        case .video: "Video"
-        case .code: "Code"
+        case .doc: String(localized: "Document")
+        case .audio: String(localized: "Audio")
+        case .video: String(localized: "Video")
+        case .code: String(localized: "Code")
         }
     }
 

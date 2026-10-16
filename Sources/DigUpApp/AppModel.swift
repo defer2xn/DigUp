@@ -23,41 +23,49 @@ final class AppModel {
     /// One line for the menu and the windows: what the index is doing.
     var statusLine: String {
         let status = self.status
-        guard hasFolders else { return "No folders chosen yet" }
+        guard hasFolders else { return String(localized: "No folders chosen yet") }
         switch status.activity {
-        case .starting: return "Starting…"
+        case .starting: return String(localized: "Starting…")
         case .failed(let problem): return "⚠︎ \(problem)"
-        case .syncing: return "Checking folders…"
+        case .syncing: return String(localized: "Checking folders…")
         case .indexing(let done, let total):
             let percent = total > 0 ? Int((Double(done) / Double(total) * 100).rounded(.down)) : 0
-            return "Indexing \(percent)% · \(done.formatted()) of \(total.formatted())"
+            return String(localized: "Indexing \(percent)% · \(done.formatted()) of \(total.formatted())")
         case .finishing(let done, let total, let files):
             let percent = total > 0 ? Int((Double(done) / Double(total) * 100).rounded(.down)) : 0
-            let which = files > 0 ? "\(files.formatted()) long \(files == 1 ? "file" : "files")" : "long files"
-            return "Reading the rest of \(which) · \(percent)%"
+            let which = files == 0 ? String(localized: "long files")
+                : files == 1 ? String(localized: "\(files.formatted()) long file")
+                : String(localized: "\(files.formatted()) long files")
+            return String(localized: "Reading the rest of \(which) · \(percent)%")
         case .idle:
             if let line = downloadLine { return line }
             if let code = status.code.indexing, code.total > 0 {
                 let percent = Int((Double(code.done) / Double(code.total) * 100).rounded(.down))
-                return "Indexing code \(percent)% · \(code.done.formatted()) of \(code.total.formatted())"
+                return String(localized: "Indexing code \(percent)% · \(code.done.formatted()) of \(code.total.formatted())")
             }
-            let waiting = "\(status.pending.formatted()) \(status.pending == 1 ? "file" : "files") waiting"
-            if status.pending > 0, status.paused { return "Paused · \(waiting)" }
+            let waiting = status.pending == 1 ? String(localized: "\(status.pending.formatted()) file waiting")
+                : String(localized: "\(status.pending.formatted()) files waiting")
+            if status.pending > 0, status.paused { return String(localized: "Paused · \(waiting)") }
             if let until = status.heldUntil, !status.paused {
                 // Outside the set hours: what's known to wait, and when indexing starts again.
-                let when = "indexing from \(until.formatted(date: .omitted, time: .shortened))"
+                let when = String(localized: "indexing from \(until.formatted(date: .omitted, time: .shortened))")
                 if status.pending > 0 { return "\(waiting) · \(when)" }
-                return "\(status.searchable.formatted()) \(status.searchable == 1 ? "file" : "files") indexed · \(when)"
+                let indexed = status.searchable == 1 ? String(localized: "\(status.searchable.formatted()) file indexed")
+                    : String(localized: "\(status.searchable.formatted()) files indexed")
+                return "\(indexed) · \(when)"
             }
             if status.pending > 0, let reason = status.waitingFor { return "\(waiting) · \(reason)" }
-            if status.pending > 0 { return "\(waiting) to be indexed" }
+            if status.pending > 0 { return String(localized: "\(waiting) to be indexed") }
             if status.unfinished > 0 {
-                let rest = "\(status.unfinished.formatted()) long \(status.unfinished == 1 ? "file" : "files") to finish"
-                if status.paused { return "Paused · \(rest)" }
+                let rest = status.unfinished == 1
+                    ? String(localized: "\(status.unfinished.formatted()) long file to finish")
+                    : String(localized: "\(status.unfinished.formatted()) long files to finish")
+                if status.paused { return String(localized: "Paused · \(rest)") }
                 if let reason = status.waitingFor { return "\(rest) · \(reason)" }
             }
-            return "\(status.searchable.formatted()) \(status.searchable == 1 ? "file" : "files") indexed"
-                + (status.paused ? " · paused" : "")
+            let indexed = status.searchable == 1 ? String(localized: "\(status.searchable.formatted()) file indexed")
+                : String(localized: "\(status.searchable.formatted()) files indexed")
+            return indexed + (status.paused ? String(localized: " · paused") : "")
         }
     }
 
@@ -65,11 +73,11 @@ final class AppModel {
     private var downloadLine: String? {
         switch download.phase {
         case .ready: nil
-        case .downloading: "Downloading the model · \(Int(download.fraction * 100))%"
-        case .verifying: "Checking the model download…"
-        case .retrying: "Model download: waiting for the network"
-        case .failed: "⚠︎ The model download stopped"
-        case .needed: status.pending > 0 ? "The model isn't downloaded yet" : nil
+        case .downloading: String(localized: "Downloading the model · \(Int(download.fraction * 100))%")
+        case .verifying: String(localized: "Checking the model download…")
+        case .retrying: String(localized: "Model download: waiting for the network")
+        case .failed: String(localized: "⚠︎ The model download stopped")
+        case .needed: status.pending > 0 ? String(localized: "The model isn't downloaded yet") : nil
         }
     }
 
@@ -89,34 +97,39 @@ final class AppModel {
     /// One line about the code index, for Settings → Code: "812 code files indexed", "Indexing code 42%…".
     var codeStatusLine: String {
         let code = status.code
-        guard hasCode else { return "Code search is off" }
-        if !download.isReady { return "Code is read once the model has downloaded" }
+        guard hasCode else { return String(localized: "Code search is off") }
+        if !download.isReady { return String(localized: "Code is read once the model has downloaded") }
         if let indexing = code.indexing, indexing.total > 0 {
             let percent = Int((Double(indexing.done) / Double(indexing.total) * 100).rounded(.down))
-            return "Indexing code \(percent)% · \(indexing.done.formatted()) of \(indexing.total.formatted())"
+            return String(localized: "Indexing code \(percent)% · \(indexing.done.formatted()) of \(indexing.total.formatted())")
         }
-        let waiting = code.pending > 0 ? " · \(code.pending.formatted()) waiting" : ""
-        if code.pending > 0, status.paused { return "Paused · \(code.pending.formatted()) code files waiting" }
-        if code.pending > 0, let reason = status.waitingFor { return "\(code.pending.formatted()) code files waiting · \(reason)" }
+        let waiting = code.pending > 0 ? String(localized: " · \(code.pending.formatted()) waiting") : ""
+        if code.pending > 0, status.paused { return String(localized: "Paused · \(code.pending.formatted()) code files waiting") }
+        if code.pending > 0, let reason = status.waitingFor {
+            return String(localized: "\(code.pending.formatted()) code files waiting · \(reason)")
+        }
         if code.pending > 0, let until = status.heldUntil {
-            return "\(code.pending.formatted()) code files waiting · indexing from "
-                + until.formatted(date: .omitted, time: .shortened)
+            let from = until.formatted(date: .omitted, time: .shortened)
+            return String(localized: "\(code.pending.formatted()) code files waiting · indexing from \(from)")
         }
         // Code is read once the other folders have nothing waiting (the helper's order).
         if code.pending > 0, status.pending > 0 {
-            let files = "\(code.pending.formatted()) code \(code.pending == 1 ? "file" : "files")"
-            return files + " waiting · read after your other files"
+            return code.pending == 1
+                ? String(localized: "\(code.pending.formatted()) code file waiting · read after your other files")
+                : String(localized: "\(code.pending.formatted()) code files waiting · read after your other files")
         }
-        return "\(code.searchable.formatted()) code \(code.searchable == 1 ? "file" : "files") indexed" + waiting
+        let indexed = code.searchable == 1 ? String(localized: "\(code.searchable.formatted()) code file indexed")
+            : String(localized: "\(code.searchable.formatted()) code files indexed")
+        return indexed + waiting
     }
 
     /// A few words for the search bar while results may be incomplete: "Indexing 42%", "Downloading model · 42%".
     var activityBadge: String? {
-        if download.isActive { return "Downloading model · \(Int(download.fraction * 100))%" }
+        if download.isActive { return String(localized: "Downloading model · \(Int(download.fraction * 100))%") }
         if case .indexing(let done, let total) = status.activity, total > 0 {
-            return "Indexing \(Int(Double(done) / Double(total) * 100))%"
+            return String(localized: "Indexing \(Int(Double(done) / Double(total) * 100))%")
         }
-        if status.paused, status.pending > 0 { return "Indexing paused" }
+        if status.paused, status.pending > 0 { return String(localized: "Indexing paused") }
         return nil
     }
 
@@ -124,19 +137,20 @@ final class AppModel {
     var meaningUnavailable: String? {
         guard !download.isReady else { return nil }
         if download.isActive {
-            return "Matching words only until the model has downloaded (\(Int(download.fraction * 100))%)"
+            return String(localized: "Matching words only until the model has downloaded (\(Int(download.fraction * 100))%)")
         }
-        return "Matching words only: the model isn't downloaded"
+        return String(localized: "Matching words only: the model isn't downloaded")
     }
 
     /// Why results may be incomplete right now, or nil.
     var resultsCaveat: String? {
         if let meaningUnavailable { return meaningUnavailable }
         if case .indexing(let done, let total) = status.activity, total > 0 {
-            return "Still indexing (\(Int(Double(done) / Double(total) * 100))%): some files aren't in yet"
+            return String(localized: "Still indexing (\(Int(Double(done) / Double(total) * 100))%): some files aren't in yet")
         }
         if status.pending > 0 {
-            return "\(status.pending.formatted()) \(status.pending == 1 ? "file isn't" : "files aren't") indexed yet"
+            return status.pending == 1 ? String(localized: "\(status.pending.formatted()) file isn't indexed yet")
+                : String(localized: "\(status.pending.formatted()) files aren't indexed yet")
         }
         return nil
     }

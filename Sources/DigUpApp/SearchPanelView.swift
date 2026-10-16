@@ -30,12 +30,12 @@ struct SearchPanelView: View {
                 .font(.system(size: controller.isCode ? 17 : 20, weight: .semibold))
                 .foregroundStyle(Brand.gradient)
                 .frame(width: 24)
-                .help(controller.isCode ? "Searching your code" : "")
+                .help(controller.isCode ? String(localized: "Searching your code") : "")
             // With code search on, one example is code's: nothing else in the panel shows "code:".
             SearchField(text: $controller.query, fontSize: 22,
                         placeholder: controller.model.hasCode
-                            ? "Describe it: “zebra in a video”, “code: retry with backoff”…"
-                            : "Describe it: “payment error screenshot”, “zebra in a video”…") {
+                            ? String(localized: "Describe it: “zebra in a video”, “code: retry with backoff”…")
+                            : String(localized: "Describe it: “payment error screenshot”, “zebra in a video”…")) {
                 controller.field = $0
             }
             if controller.phase == .words, controller.encoder == .starting {
@@ -121,31 +121,35 @@ struct SearchPanelView: View {
     private var keysText: String {
         let row = controller.selectedRow
         if let row, row.kind == .code {
-            let line = row.segment == .lines ? " at line \(row.codeLine)" : ""
-            return "↩ \(row.openTitle)\(line)   ⌘↩ Reveal   ␣ Quick Look   ⌘C Copy"
+            let line = row.segment == .lines ? String(localized: " at line \(row.codeLine)") : ""
+            return String(localized: "↩ \(row.openTitle)\(line)   ⌘↩ Reveal   ␣ Quick Look   ⌘C Copy")
         }
-        let place = row?.jump.map { " at \($0)" } ?? ""
-        return "↩ \(row?.openTitle ?? "Open")   ⌘↩ Reveal   ␣ Quick Look\(place)   ⌘C Copy"
+        let place = row?.jump.map { String(localized: " at \($0)") } ?? ""
+        let open = row?.openTitle ?? String(localized: "Open")
+        return String(localized: "↩ \(open)   ⌘↩ Reveal   ␣ Quick Look\(place)   ⌘C Copy")
     }
 
     private var statusText: String {
         if let note = controller.note { return note }
         switch controller.phase {
         case .words:
-            return controller.encoder == .starting ? "Matching words; meaning search is warming up…" : "Matching words…"
+            return controller.encoder == .starting ? String(localized: "Matching words; meaning search is warming up…")
+                : String(localized: "Matching words…")
         case .wordsOnly:
-            return controller.model.meaningUnavailable ?? "Words only: meaning search isn't available"
+            return controller.model.meaningUnavailable ?? String(localized: "Words only: meaning search isn't available")
         case .codeHint, .codeOff:
-            return controller.phase == .codeOff ? "Code search is off" : "Searching your code"
+            return controller.phase == .codeOff ? String(localized: "Code search is off") : String(localized: "Searching your code")
         case .meaning, .empty:
             if controller.isCode, let indexing = controller.model.status.code.indexing, indexing.total > 0 {
-                return "Still reading code (\(Int(Double(indexing.done) / Double(indexing.total) * 100))%): some isn't in yet"
+                let percent = Int(Double(indexing.done) / Double(indexing.total) * 100)
+                return String(localized: "Still reading code (\(percent)%): some isn't in yet")
             }
             if !controller.isCode, let caveat = controller.model.resultsCaveat { return caveat }
             let count = controller.results.strongRows.count
             let weaker = controller.results.weaker.count
-            return (count == 1 ? "1 result" : "\(count) results") + (controller.isCode ? " in your code" : "")
-                + (weaker > 0 ? " · \(weaker) weaker" : "")
+            return (count == 1 ? String(localized: "1 result") : String(localized: "\(count) results"))
+                + (controller.isCode ? String(localized: " in your code") : "")
+                + (weaker > 0 ? String(localized: " · \(weaker) weaker") : "")
         }
     }
 }
@@ -268,7 +272,7 @@ private struct PanelRow: View {
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous)
             .fill(selected ? Color.accentColor.opacity(0.24) : Color.clear))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(row.kind.title), \(row.name), \(row.reason)")
+        .accessibilityLabel(String(localized: "\(row.kind.title), \(row.name), \(row.reason)"))
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -284,7 +288,8 @@ private struct WeakerRow: View {
             Image(systemName: "chevron.right")
                 .font(.system(size: 9.5, weight: .bold))
                 .rotationEffect(.degrees(expanded ? 90 : 0))
-            Text(expanded ? "Weaker matches" : "\(count) weaker \(count == 1 ? "match" : "matches")")
+            Text(expanded ? String(localized: "Weaker matches")
+                 : count == 1 ? String(localized: "1 weaker match") : String(localized: "\(count) weaker matches"))
                 .font(.system(size: 11.5, weight: .medium))
             Spacer()
         }
@@ -307,10 +312,11 @@ private struct WeakerExplainer: View {
             Image(systemName: "line.3.horizontal.decrease.circle")
                 .font(.system(size: 30, weight: .light))
                 .foregroundStyle(.tertiary)
-            Text(expanded ? "Weaker matches" : "\(count) weaker \(count == 1 ? "match" : "matches")")
+            Text(expanded ? String(localized: "Weaker matches")
+                 : count == 1 ? String(localized: "1 weaker match") : String(localized: "\(count) weaker matches"))
                 .font(.system(size: 14, weight: .semibold))
-            Text("They match much less well than the results above. Press Return to "
-                 + (expanded ? "fold them away." : "show them."))
+            Text(expanded ? String(localized: "They match much less well than the results above. Press Return to fold them away.")
+                 : String(localized: "They match much less well than the results above. Press Return to show them."))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -376,7 +382,7 @@ struct SearchField: NSViewRepresentable {
         field.cell?.isScrollable = true
         field.cell?.wraps = false
         field.delegate = context.coordinator
-        field.setAccessibilityLabel("Search")
+        field.setAccessibilityLabel(String(localized: "Search"))
         onMake(field)
         return field
     }
@@ -429,7 +435,7 @@ final class FocusReportingField: NSTextField {
 struct FileDragArea: NSViewRepresentable {
     let url: URL
     /// "Open at 0:06": what double-click and the menu's first item do.
-    var openTitle = "Open"
+    var openTitle = String(localized: "Open")
     let onClick: () -> Void
     let onOpen: () -> Void
 
@@ -445,7 +451,7 @@ struct FileDragArea: NSViewRepresentable {
 
 final class FileDragView: NSView, NSDraggingSource {
     var url: URL?
-    var openTitle = "Open"
+    var openTitle = String(localized: "Open")
     var onClick: () -> Void = {}
     var onOpen: () -> Void = {}
     private var mouseDownEvent: NSEvent?
@@ -487,13 +493,13 @@ final class FileDragView: NSView, NSDraggingSource {
         onClick()
         let menu = NSMenu()
         menu.addItem(ActionMenuItem(openTitle) { [onOpen] in onOpen() })
-        menu.addItem(ActionMenuItem("Show in Finder") { NSWorkspace.shared.activateFileViewerSelecting([url]) })
+        menu.addItem(ActionMenuItem(String(localized: "Show in Finder")) { NSWorkspace.shared.activateFileViewerSelecting([url]) })
         menu.addItem(.separator())
-        menu.addItem(ActionMenuItem("Copy") {
+        menu.addItem(ActionMenuItem(String(localized: "Copy")) {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.writeObjects([url as NSURL])
         })
-        menu.addItem(ActionMenuItem("Copy Path") {
+        menu.addItem(ActionMenuItem(String(localized: "Copy Path")) {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(url.path, forType: .string)
         })
@@ -511,8 +517,9 @@ final class FileDragView: NSView, NSDraggingSource {
 private struct CodeHint: View {
     let controller: SearchPanelController
 
-    static let examples = ["code: retry a request with backoff", "code: where the settings are saved",
-                           "code: parse the command line options"]
+    static let examples = [String(localized: "code: retry a request with backoff"),
+                           String(localized: "code: where the settings are saved"),
+                           String(localized: "code: parse the command line options")]
 
     var body: some View {
         VStack(spacing: 10) {
@@ -521,8 +528,10 @@ private struct CodeHint: View {
                 .foregroundStyle(Brand.gradient)
             if controller.phase == .codeOff {
                 Text("Code search is off").font(.system(size: 15, weight: .semibold))
-                Text("DigUp can find code by what it does, in the folders you pick. Code gets an index of its own "
-                     + "and never shows up in other searches.")
+                Text("""
+                    DigUp can find code by what it does, in the folders you pick. Code gets an index of its own \
+                    and never shows up in other searches.
+                    """)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 420)

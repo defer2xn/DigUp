@@ -398,7 +398,7 @@ struct SearchWindowView: View {
                         .foregroundStyle(search.showsPreview ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.secondary))
                 }
                 .buttonStyle(.plain)
-                .help(search.showsPreview ? "Hide Preview" : "Show Preview")
+                .help(search.showsPreview ? String(localized: "Hide Preview") : String(localized: "Show Preview"))
                 Button {
                     app.showSettings()
                 } label: {
@@ -441,9 +441,9 @@ struct SearchWindowView: View {
             ProgressView().controlSize(.small).frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if search.results.isEmpty {
             EmptyState(symbol: search.isCode ? FileKind.code.symbol : "magnifyingglass",
-                       title: "No good matches for “\(search.query.trimmingCharacters(in: .whitespaces))”",
-                       message: search.isCode ? "Try saying what the code does, or a name that's in it."
-                           : "Try describing what's in it: what you'd see or hear, or words you remember.")
+                       title: String(localized: "No good matches for “\(search.query.trimmingCharacters(in: .whitespaces))”"),
+                       message: search.isCode ? String(localized: "Try saying what the code does, or a name that's in it.")
+                           : String(localized: "Try describing what's in it: what you'd see or hear, or words you remember."))
         } else if search.isCode {
             CodeResultsList(search: search)
         } else {
@@ -484,15 +484,15 @@ struct SearchWindowView: View {
 
     /// Examples of what to type: code's with the Code chip on, and one of them with code search on (as the panel's).
     private var placeholder: String {
-        if search.filter == .code { return "Describe the code: “retry a request with backoff”, a name in it…" }
-        return model.hasCode ? "Describe it: “zebra in a video”, “code: retry with backoff”…"
-            : "Describe it: “receipt from the hardware store”, “zebra in a video”…"
+        if search.filter == .code { return String(localized: "Describe the code: “retry a request with backoff”, a name in it…") }
+        return model.hasCode ? String(localized: "Describe it: “zebra in a video”, “code: retry with backoff”…")
+            : String(localized: "Describe it: “receipt from the hardware store”, “zebra in a video”…")
     }
 
     private var resultCount: String {
         let count = search.results.ranked.count
-        return (count == 1 ? "1 result" : "\(count) results")
-            + (search.results.weaker.isEmpty ? "" : " · \(search.results.weaker.count) weaker")
+        return (count == 1 ? String(localized: "1 result") : String(localized: "\(count) results"))
+            + (search.results.weaker.isEmpty ? "" : String(localized: " · \(search.results.weaker.count) weaker"))
     }
 }
 
@@ -504,7 +504,7 @@ private struct KindFilters: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            chip(title: "All", symbol: nil, count: nil, selected: search.filter == nil && !search.isCode) {
+            chip(title: String(localized: "All"), symbol: nil, count: nil, selected: search.filter == nil && !search.isCode) {
                 search.filter = nil
             }
             ForEach(ResultGroupKind.files, id: \.self) { kind in
@@ -515,7 +515,7 @@ private struct KindFilters: View {
             }
             if showsCode {
                 Divider().frame(height: 16).padding(.horizontal, 4)
-                chip(title: "Code", symbol: FileKind.code.symbol, count: search.isCode ? search.counts[.code] : nil,
+                chip(title: String(localized: "Code"), symbol: FileKind.code.symbol, count: search.isCode ? search.counts[.code] : nil,
                      selected: search.isCode, shortcut: 7) {
                     search.filter = search.filter == .code ? nil : .code
                 }
@@ -723,7 +723,7 @@ private struct CodeResultRow: View {
             .fill(selected ? Color.accentColor.opacity(0.22) : Color.clear))
         .contentShape(Rectangle())
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Code, \(row.name), \(row.reason)")
+        .accessibilityLabel(String(localized: "Code, \(row.name), \(row.reason)"))
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -796,7 +796,8 @@ struct WeakerToggle: View {
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10, weight: .semibold))
                     .rotationEffect(.degrees(expanded ? 90 : 0))
-                Text(expanded ? "Weaker matches" : "\(count) weaker \(count == 1 ? "match" : "matches")")
+                Text(expanded ? String(localized: "Weaker matches")
+                     : count == 1 ? String(localized: "1 weaker match") : String(localized: "\(count) weaker matches"))
                     .font(.system(size: 12, weight: .medium))
             }
             .foregroundStyle(.secondary)
@@ -842,8 +843,9 @@ private struct SearchHome: View {
     @State private var kinds: [FileKind: Int] = [:]
 
     private static let examples: [(text: String, kind: ResultGroupKind)] = [
-        ("a screenshot of an error message", .screenshots), ("receipt", .documents), ("whiteboard notes", .images),
-        ("someone laughing", .audio), ("a dog on the beach", .video), ("slides about the budget", .documents),
+        (String(localized: "a screenshot of an error message"), .screenshots), (String(localized: "receipt"), .documents),
+        (String(localized: "whiteboard notes"), .images), (String(localized: "someone laughing"), .audio),
+        (String(localized: "a dog on the beach"), .video), (String(localized: "slides about the budget"), .documents),
     ]
 
     var body: some View {
@@ -852,8 +854,10 @@ private struct SearchHome: View {
             Text("Describe it. Dig it up.")
                 .font(.system(size: 24, weight: .bold))
                 .padding(.top, 18)
-            Text("Type what you remember in the search field above: what's in it, what it looks or sounds like, or "
-                 + "words from it.")
+            Text("""
+                Type what you remember in the search field above: what's in it, what it looks or sounds like, or \
+                words from it.
+                """)
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -905,12 +909,12 @@ private struct SearchHome: View {
 
     /// With code search on, one of code's too.
     private var examples: [(text: String, kind: ResultGroupKind)] {
-        Self.examples + (model.hasCode ? [("code: where the settings are saved", .code)] : [])
+        Self.examples + (model.hasCode ? [(String(localized: "code: where the settings are saved"), .code)] : [])
     }
 
     private var folders: String {
         let names = model.settings.roots.map(\.lastPathComponent)
-        return names.count <= 3 ? names.formatted(.list(type: .and)) : "\(names.count) folders"
+        return names.count <= 3 ? names.formatted(.list(type: .and)) : String(localized: "\(names.count) folders")
     }
 }
 

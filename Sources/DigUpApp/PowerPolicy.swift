@@ -53,12 +53,12 @@ final class PowerPolicy {
 
     nonisolated static func backfillBlocker(indexOnBattery: Bool) -> String? {
         let info = ProcessInfo.processInfo
-        if info.isLowPowerModeEnabled { return "Low Power Mode" }
+        if info.isLowPowerModeEnabled { return String(localized: "Low Power Mode") }
         switch info.thermalState {
-        case .serious, .critical: return "Mac is warm"
+        case .serious, .critical: return String(localized: "Mac is warm")
         default: break
         }
-        if !indexOnBattery, !onACPower() { return "on battery" }
+        if !indexOnBattery, !onACPower() { return String(localized: "on battery") }
         return nil
     }
 
